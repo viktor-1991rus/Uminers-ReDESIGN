@@ -32,6 +32,8 @@ const footerLinks = [
   { label: 'The film', href: '#film' },
   { label: 'Company', href: '#about' },
   { label: 'Journey', href: '#awards' },
+  { label: 'Blog', href: '/blog' },
+  { label: 'Uminers Academy', href: '/academy' },
   { label: 'Contact', href: '#contact' }
 ]
 

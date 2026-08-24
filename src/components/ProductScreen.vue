@@ -9,6 +9,8 @@
  * into filling in.
  */
 import { ref, watch, onBeforeUnmount } from 'vue'
+import { addToCart, qtyFor } from '@/lib/cart'
+import TcoCalculator from './TcoCalculator.vue'
 
 const props = defineProps({
   product: { type: Object, default: null },
@@ -27,6 +29,28 @@ function copySku() {
   setTimeout(() => { copied.value = false }, 1400)
 }
 
+/* Buy / Leasing — the switch has nowhere real to go yet. Leasing is a future
+   finance product the desk hasn't priced; flipping this on before that exists
+   would be inventing terms nobody quoted. The row stays on the rail so the
+   layout doesn't reflow the day it does go live — it just becomes clickable. */
+const LEASING_ENABLED = false
+const payWay = ref('buy')
+
+/* Add to cart — not a checkout, just what a visitor wants a quote on. Qty
+   resets to 1 per product view; "just added" is its own flash independent of
+   the running total already in the cart, so both stay visible at once. */
+const qty = ref(1)
+const justAdded = ref(false)
+let addedTimer = null
+function add() {
+  if (!props.product) return
+  addToCart(props.product, qty.value)
+  justAdded.value = true
+  clearTimeout(addedTimer)
+  addedTimer = setTimeout(() => { justAdded.value = false }, 1800)
+}
+
+watch(() => props.product, () => { qty.value = 1; justAdded.value = false })
 watch(() => props.open, (v) => {
   document.body.style.overflow = v ? 'hidden' : ''
   v ? addEventListener('keydown', onKey) : removeEventListener('keydown', onKey)
@@ -34,6 +58,7 @@ watch(() => props.open, (v) => {
 onBeforeUnmount(() => {
   removeEventListener('keydown', onKey)
   document.body.style.overflow = ''
+  clearTimeout(addedTimer)
 })
 </script>
 
@@ -65,15 +90,32 @@ onBeforeUnmount(() => {
             <li v-for="(line, i) in product.card" :key="i" class="body">{{ line }}</li>
           </ul>
 
-          <dl class="pscreen__specs">
-            <template v-for="(v, k) in product.specs" :key="k">
-              <dt>{{ k }}</dt>
-              <dd>{{ v }}</dd>
-            </template>
-          </dl>
+          <p v-if="product.specs" class="label label--faded pscreen__specsHead">Specifications</p>
+          <table v-if="product.specs" class="pscreen__specs">
+            <tbody>
+              <tr v-for="(v, k) in product.specs" :key="k">
+                <th scope="row">{{ k }}</th>
+                <td>{{ v }}</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
 
         <aside class="pscreen__rail">
+          <!-- reserved for the future finance product — inert until the desk
+               has real leasing terms to quote against -->
+          <div class="pscreen__payway" :class="{ 'is-locked': !LEASING_ENABLED }">
+            <button
+              type="button" class="pscreen__paywayOpt" :class="{ 'is-on': payWay === 'buy' }"
+              @click="payWay = 'buy'"
+            >Buy</button>
+            <button
+              type="button" class="pscreen__paywayOpt" :class="{ 'is-on': LEASING_ENABLED && payWay === 'lease' }"
+              :disabled="!LEASING_ENABLED"
+              @click="LEASING_ENABLED && (payWay = 'lease')"
+            >Leasing <span v-if="!LEASING_ENABLED" class="pscreen__paywaySoon">Soon</span></button>
+          </div>
+
           <p v-if="product.price" class="pscreen__price">
             ${{ product.price.toLocaleString('en-US') }}
             <span class="label label--faded pscreen__priceUnit">per unit</span>
@@ -82,6 +124,20 @@ onBeforeUnmount(() => {
           <a class="btn btn--primary pscreen__quote" href="#desk" @click="emit('close')">
             <span>{{ product.price ? 'Request quote' : 'Get a quote' }}</span>
           </a>
+
+          <div class="pscreen__cart">
+            <div class="pscreen__qty">
+              <button type="button" aria-label="Decrease quantity" @click="qty = Math.max(1, qty - 1)">−</button>
+              <span>{{ qty }}</span>
+              <button type="button" aria-label="Increase quantity" @click="qty++">+</button>
+            </div>
+            <button class="btn btn--transparent pscreen__addCart" type="button" @click="add">
+              <span>{{ justAdded ? 'Added' : 'Add to cart' }}</span>
+            </button>
+          </div>
+          <p v-if="qtyFor(product.slug)" class="label label--faded pscreen__cartNote">
+            {{ qtyFor(product.slug) }} in cart
+          </p>
 
           <div class="pscreen__railRule" />
           <p class="pscreen__stockStatus">
@@ -101,6 +157,9 @@ onBeforeUnmount(() => {
           <a class="btn btn--transparent pscreen__mail" href="mailto:info@uminers.com">
             <span>info@uminers.com</span>
           </a>
+
+          <div class="pscreen__railRule" />
+          <TcoCalculator :product="product" />
         </aside>
       </div>
     </template>
@@ -166,15 +225,59 @@ onBeforeUnmount(() => {
 }
 .pscreen__points li{ margin: 0 }
 
+.pscreen__specsHead{ margin: var(--spacingL) 0 0 }
 .pscreen__specs{
-  margin: var(--spacingL) 0 0; display: grid;
-  grid-template-columns: 88px minmax(0,1fr); row-gap: var(--spacingS);
+  margin: var(--spacingXS) 0 0; width: 100%; border-collapse: collapse;
 }
-.pscreen__specs dt{
+.pscreen__specs tr{ border-top: 1px solid var(--hairline) }
+.pscreen__specs tr:last-child{ border-bottom: 1px solid var(--hairline) }
+.pscreen__specs tr:nth-child(even){ background: color-mix(in srgb, var(--elevated) 55%, transparent) }
+.pscreen__specs th, .pscreen__specs td{
+  text-align: left; font-weight: var(--weightBody); padding: 9px 10px;
+  vertical-align: top;
+}
+.pscreen__specs th{
   font-family: var(--fontMono); font-size: 10px; text-transform: uppercase;
-  letter-spacing: .06em; color: var(--faded); align-self: start; padding-top: 2px;
+  letter-spacing: .06em; color: var(--faded); width: 40%; white-space: normal;
 }
-.pscreen__specs dd{ margin: 0; font-size: 14px; line-height: 1.4 }
+.pscreen__specs td{ font-size: 14px; line-height: 1.4 }
+
+/* ── Buy / Leasing — reserved rail slot, inert until leasing is a real
+     product; "Soon" is a fact about the feature, not a marketing claim ── */
+.pscreen__payway{
+  display: grid; grid-template-columns: 1fr 1fr; gap: 2px;
+  border: 1px solid var(--hairline); border-radius: 999px; padding: 2px;
+}
+.pscreen__paywayOpt{
+  all: unset; box-sizing: border-box; text-align: center; cursor: pointer;
+  padding: 8px 10px; border-radius: 999px; font-size: 13px;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  color: var(--faded);
+}
+.pscreen__paywayOpt.is-on{ background: var(--ink); color: var(--white) }
+.pscreen__payway.is-locked .pscreen__paywayOpt:last-child{
+  cursor: not-allowed; opacity: .55;
+}
+.pscreen__paywaySoon{
+  font-family: var(--fontMono); font-size: 9px; letter-spacing: .06em;
+  text-transform: uppercase; border: 1px solid currentColor; border-radius: 999px;
+  padding: 1px 5px;
+}
+
+.pscreen__cart{ display: flex; gap: 8px; margin-top: var(--spacingXS) }
+.pscreen__qty{
+  display: flex; align-items: center; border: 1px solid var(--hairline);
+  border-radius: 999px; overflow: hidden; flex: none;
+}
+.pscreen__qty button{
+  all: unset; cursor: pointer; width: 32px; height: 48px;
+  display: grid; place-items: center; font-size: 15px;
+}
+.pscreen__qty span{
+  min-width: 24px; text-align: center; font-variant-numeric: tabular-nums; font-size: 14px;
+}
+.pscreen__addCart{ flex: 1; height: 48px }
+.pscreen__cartNote{ margin: 6px 0 0 }
 
 /* the quote rail — sticky so the CTA stays reachable while specs scroll */
 .pscreen__rail{

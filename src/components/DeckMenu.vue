@@ -72,6 +72,20 @@ onBeforeUnmount(() => removeEventListener('scroll', onScroll))
           to="/catalogue"
         >Catalogue</RouterLink>
       </li>
+      <li>
+        <RouterLink
+          class="label deckmenu__item deckmenu__item--link"
+          :class="{ 'is-current': route.name === 'blog' }"
+          to="/blog"
+        >Blog</RouterLink>
+      </li>
+      <li>
+        <RouterLink
+          class="label deckmenu__item deckmenu__item--link"
+          :class="{ 'is-current': route.name === 'academy' }"
+          to="/academy"
+        >Academy</RouterLink>
+      </li>
     </ul>
 
     <span class="label deckmenu__count">

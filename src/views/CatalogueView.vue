@@ -36,6 +36,8 @@ const navLinks = [
 const footerLinks = [
   { label: 'Home', href: '/' },
   { label: 'Catalogue', href: '#grid' },
+  { label: 'Blog', href: '/blog' },
+  { label: 'Uminers Academy', href: '/academy' },
   { label: 'Sourcing desk', href: '#desk' }
 ]
 

@@ -11,6 +11,9 @@ const router = createRouter({
     { path: '/', name: 'deck', component: () => import('./views/DeckView.vue') },
     { path: '/classic', name: 'home', component: () => import('./views/HomeView.vue') },
     { path: '/catalogue', name: 'catalogue', component: () => import('./views/CatalogueView.vue') },
+    { path: '/blog', name: 'blog', component: () => import('./views/BlogView.vue') },
+    { path: '/blog/:slug', name: 'article', component: () => import('./views/ArticleView.vue') },
+    { path: '/academy', name: 'academy', component: () => import('./views/AcademyView.vue') },
     { path: '/:pathMatch(.*)*', redirect: '/' }
   ],
   scrollBehavior(to, from, saved) {

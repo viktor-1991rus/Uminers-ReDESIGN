@@ -152,7 +152,7 @@ const place = (i) => (i === deck.index ? 0 : i < deck.index ? -1 : 1)
            photo belt: at this scale the wheel and a four-photo strip do not
            both fit one fixed viewport, and the wheel is what was asked for. -->
       <div v-else-if="s.key === 'company'" class="screen__body screen__body--journey">
-        <JourneyWheel :stage="deck.stage" :active="i === deck.index" />
+        <JourneyWheel :stage="deck.stage" :active="i === deck.index" :jump="deck.jump" />
       </div>
 
 

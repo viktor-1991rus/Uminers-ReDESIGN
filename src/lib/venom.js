@@ -462,10 +462,22 @@ export function createVenom(canvas, opts = {}) {
      and less colour, and that is indistinguishable from the venom changing its
      nature, which is the complaint. Bringing the ink up first fills the gap
      with the new cloud in its dispersed state, which is the same material at
-     the same tone, and only then does it start to gather. */
+     the same tone, and only then does it start to gather.
+
+     ── and the whole event now starts 100ms after the gesture, not 160 ──
+     Frame-sampled at 50ms through a deck step, the page did nothing at all for
+     the first ~500ms: the incoming screen is parked off-frame behind a 450ms
+     transition-delay, the outgoing one is already at opacity 0 by 340ms, and
+     the substance's own departure did not begin until 160ms and then spent
+     the head of its window on `1 - local^1.90` — a curve whose whole point is
+     that "nothing happens, then it is thrown". Three lead-ins stacked on one
+     gesture is what reads as the page hanging. The shape of this timeline is
+     not touched: every interval, every ratio and the 250ms overlap between the
+     two tracks are the numbers above, to two decimals. The whole set is simply
+     read 0.10s earlier, so the first grain moves within 100ms of the hand. */
   const TL_MORPH = {
-    out: { mode: 0, m0: 0.16, m1: 1.00, a0: 0.16, a1: 0.40, a2: 1.05, a3: 1.45 },
-    in:  { mode: 1, m0: 0.75, m1: 2.30, a0: 0.55, a1: 0.85, a2: 2.08, a3: 2.38 }
+    out: { mode: 0, m0: 0.06, m1: 0.90, a0: 0.06, a1: 0.30, a2: 0.95, a3: 1.35 },
+    in:  { mode: 1, m0: 0.65, m1: 2.20, a0: 0.45, a1: 0.75, a2: 1.98, a3: 2.28 }
   }
   /* First appearance has nothing to disperse, and it is the one gesture the
      viewer has time to watch: 2.6s of gathering against the morph's 1.55s. */
@@ -576,6 +588,28 @@ export function createVenom(canvas, opts = {}) {
   const geomOut = { fit: view.fit, ox: view.ox, oy: view.oy, opacity: view.opacity }
   const geomFrom = { fit: view.fit, ox: view.ox, oy: view.oy, opacity: view.opacity }
   let geomMoving = false
+
+  /* ── and the frame the ARRIVING cloud gathers onto ──
+     Measured, 24 Aug 2026, on the deck step into `company`: the incoming cloud
+     was drawn in `view`, and during a re-aim `view` is not a constant — it is
+     being carried from the old frame to the new one by the block in frame().
+     So the swarm gathered AND translated at the same time, and on the largest
+     re-aim on the deck (fit .58 → .42, the figure's centre 50% → 83% of the
+     viewport) that translation is 475 screen px between m 0.15 and m 0.60, i.e.
+     between 0.61s and 1.36s of the morph — 633 px/s of coherent whole-mass
+     slide, at a moment when this cloud's ink is already between 0.7 and 1.0.
+     Frame-sampled it reads as the substance dragging itself sideways: the exact
+     picture move the particle layer exists to delete, and the reason the
+     complaint names this one section.
+     The frame is now the section's target from the cloud's first frame —
+     which is what setMark's own comment already claims it is, and was true
+     there and only there. `view` still travels, because the FIELD has to end
+     up in the new window, and it travels while uMarkGain has it at 12% falling
+     to 3%, which is the window that was chosen for exactly that.
+     Opacity is deliberately NOT switched: it is a fade, not a geometry, and the
+     catalogue cover eases it per scroll frame. Outside a change gIn IS view, to
+     the number, so nothing that was tuned against the ease moves. */
+  const geomIn = { fit: view.fit, ox: view.ox, oy: view.oy, opacity: view.opacity }
 
   function freezeGeometry() {
     geomOut.fit = geomFrom.fit = view.fit
@@ -968,6 +1002,11 @@ export function createVenom(canvas, opts = {}) {
       view.oy += ((opts.offsetY ?? -0.07) - view.oy) * vk
       view.opacity += ((opts.opacity ?? 1) - view.opacity) * vk
     }
+    /* the arriving cloud's frame — the target, not the travelling view */
+    geomIn.fit = opts.fit ?? 0.40
+    geomIn.ox = opts.offsetX ?? 0
+    geomIn.oy = opts.offsetY ?? -0.07
+    geomIn.opacity = view.opacity
     tap.t += dt
 
     gl.uniform1f(U.uFit, view.fit)
@@ -994,7 +1033,8 @@ export function createVenom(canvas, opts = {}) {
        still image — but its mid-change boost is gone with the rest, and it is
        damped by `quiet` so the last thing the field does before handing over is
        stop moving rather than move hardest. */
-    const pulse = reduced ? 0 : (0.34 + 0.30 * Math.sin(elapsed * 0.42)) * fade * quiet
+    const pulse0 = reduced ? 0 : (0.34 + 0.30 * Math.sin(elapsed * 0.42)) * fade
+    const pulse = pulse0 * quiet
     gl.uniform1f(U.uPulse, pulse)
     gl.uniform2f(U.uOffsetCentre, view.ox, view.oy)
 
@@ -1069,9 +1109,31 @@ export function createVenom(canvas, opts = {}) {
        carries them on both layers at once. Left at the old numbers the marks
        would read as MORE disturbed than they were, not less. */
     const waveSpeed = 0.30 + 0.020 * e.d1
-    const waveAmp = ((0.100 - 0.033 * settle) + 0.006 * e.d2) * hold * zoom * quiet
-    const rippleMix = (0.46 - 0.115 * settle) * hold * quiet
-    const complexMix = (0.044 - 0.038 * settle) * quiet
+    const wave0 = ((0.100 - 0.033 * settle) + 0.006 * e.d2) * hold * zoom
+    const ripple0 = (0.46 - 0.115 * settle) * hold
+    const complex0 = (0.044 - 0.038 * settle)
+    const waveAmp = wave0 * quiet
+    const rippleMix = ripple0 * quiet
+    const complexMix = complex0 * quiet
+    /* ── the grains are allowed to keep breathing while they are apart ──
+       `quiet` is the field's own answer to a real defect: those three terms
+       displace the field's SAMPLING UV, and the channel shift rides the same
+       displacement, so a field warping hardest mid-change literally changes the
+       mark's colour while it changes shape. None of that reasoning reaches the
+       cloud — a grain is placed, not sampled, and its chroma is a flat term
+       twenty lines below that no displacement touches. But the cloud was handed
+       the field's already-multiplied numbers, so for the 2.4s of every change
+       the substance had zero wave, zero ripple, zero complex wave and zero
+       pulse: the swarm went ballistic and stopped moving of its own accord at
+       exactly the moment the screens are empty and it is the only thing on the
+       page. That is the "не живой" in the complaint, in four multiplications.
+       The pulse — the breathing the owner named as the thing that must not
+       change — is handed over undamped; the three geometry terms keep 65% of
+       themselves at the peak of a change, because they DO smear a silhouette
+       and a gathering cloud still has to land on its targets.
+       At rest quiet is 1 and every number here is bit-identical to the field's,
+       so the settled frame is the one that was tuned. */
+    const cloudQ = quiet + (1 - quiet) * 0.65
     gl.uniform1f(U.uWaveSpeed, waveSpeed)
     gl.uniform1f(U.uWaveAmplitude, waveAmp)
     gl.uniform1f(U.uRippleMix, rippleMix)
@@ -1213,9 +1275,12 @@ export function createVenom(canvas, opts = {}) {
         warp: 1,
         mx: mIdle ? 0.5 : mouse.x, my: mIdle ? 0.55 : mouse.y,
         cx: view.ox, cy: view.oy,
-        waveSpeed, waveAmp, waveFreq: 8.0,
-        rippleSpeed: 1.0, rippleMix, complexMix,
-        stretch: 0, split: 0, pulse,
+        waveSpeed, waveFreq: 8.0, rippleSpeed: 1.0,
+        // the cloud's own share — see cloudQ above. Equal to the field's at rest.
+        waveAmp: wave0 * cloudQ,
+        rippleMix: ripple0 * cloudQ,
+        complexMix: complex0 * cloudQ,
+        stretch: 0, split: 0, pulse: pulse0,
         tapX: tap.x, tapY: tap.y, tapT: tap.t,
         fanA: fanUniform(0), fanB: fanUniform(1), fanMix,
         /* The edge treatment is per mark, not global: it needs the faint halo
@@ -1242,7 +1307,8 @@ export function createVenom(canvas, opts = {}) {
            the same grain, but visibly thinner material. 1.35 is the coverage
            deficit, and it lands the two on 0.32. Clamped at 1, which is where
            the hall already was. */
-        [P.in, TL.in, corrIn, Math.min(1, (1 - fieldHold) * 1.05), 0, view]
+        [P.in, TL.in, corrIn, Math.min(1, (1 - fieldHold) * 1.05), 0,
+         geomMoving ? geomIn : view]
       ]) {
         if (!set || !k) continue
         base.fit = gv.fit

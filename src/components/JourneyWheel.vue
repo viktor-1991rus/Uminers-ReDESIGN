@@ -78,12 +78,32 @@
  * the shelf rule are in the same place at every stage, so an empty slot reads
  * as a year without an award rather than as a failed image.
  */
+import { ref, watch, nextTick } from 'vue'
 import { JOURNEY } from '@/data/journey'
 import MicroLabel from '@/components/MicroLabel.vue'
 
-defineProps({
+const props = defineProps({
   stage: { type: Number, default: 0 },
-  active: { type: Boolean, default: false }
+  active: { type: Boolean, default: false },
+  /* a counter, not a boolean: it is bumped by deck.js every time the stage moved
+     because the SECTION changed. See the note on `jump` in deck.js — arriving
+     into this section backwards used to spin the ring 240deg and sweep the copy
+     column 1664px at up to 4980 px/s while the screen itself was still coming
+     in. An arrival is not a turn. */
+  jump: { type: Number, default: 0 }
+})
+
+/* One update with every duration in the component at zero, then the durations
+   come back — so the NEXT wheel step is the 820ms turn it has always been.
+   Two frames rather than nextTick alone: the class and the new --rot land in
+   the same style recalculation, and the transition may not be restored until
+   that recalculation has been committed, or the browser interpolates from the
+   old angle after all. */
+const held = ref(false)
+watch(() => props.jump, async () => {
+  held.value = true
+  await nextTick()
+  requestAnimationFrame(() => requestAnimationFrame(() => { held.value = false }))
 })
 
 /* 30deg, straight off the reference. At nine stops that is a 240deg sweep, and
@@ -93,7 +113,7 @@ const STEP_DEG = 30
 </script>
 
 <template>
-  <div class="jw" :class="{ 'is-active': active }" :style="{ '--stage': stage, '--rot': (-STEP_DEG * stage) + 'deg' }">
+  <div class="jw" :class="{ 'is-active': active, 'is-held': held }" :style="{ '--stage': stage, '--rot': (-STEP_DEG * stage) + 'deg' }">
 
 
     <!-- ── the dial ────────────────────────────────────────────────────
@@ -164,9 +184,9 @@ const STEP_DEG = 30
          it were 116x78 each. All three sources are the company's own: the
          aerial is uminers.com/hosting, the container is @uminers_official. -->
     <div class="jw__strip" aria-hidden="true">
-      <img src="/assets/img/site-campus-aerial.jpg" alt="" width="950" height="864" loading="lazy" decoding="async">
-      <img src="/assets/img/site-crew-rows.jpg" alt="" width="700" height="493" loading="lazy" decoding="async">
-      <img src="/assets/img/logistics-container-wrap.jpg" alt="" width="700" height="493" loading="lazy" decoding="async">
+      <img src="/assets/img/site-campus-dusk-v2.jpg" alt="" width="1100" height="825" loading="lazy" decoding="async">
+      <img src="/assets/img/site-crew-rows-v2.jpg" alt="" width="1100" height="823" loading="lazy" decoding="async">
+      <img src="/assets/img/logistics-container-wrap-v2.jpg" alt="" width="733" height="1100" loading="lazy" decoding="async">
     </div>
 
     <!-- ── the award slot ──────────────────────────────────────────────
@@ -221,9 +241,27 @@ const STEP_DEG = 30
   --textw: min(34vw, 34rem);
   --step-y: 13rem;        /* copy travel per stage */
   --slot-step: 5.0rem;    /* award travel per stage — the parallax lag */
+  /* the strip's gap below the copy's own centreline, as a fraction of
+     --step-y rather than a fixed rem: the wide-screen steps below grow
+     --step-y (font size grows with it, via --headingXL), so tying the gap to
+     it means the strip is pushed down automatically instead of needing a
+     hand-tuned override at every breakpoint — the previous fixed 7rem is why
+     a long title at the 2560px step (headingXL 108px) grew tall enough to
+     print into the strip below it. */
+  --strip-gap: calc(var(--step-y) * .60);
   color: var(--foreground);
 }
 
+
+/* The arrival. Every duration this component owns, at zero, for the one update
+   in which the deck handed it a new section — the ring, the copy track, the
+   award track, the dot, the year, the period and the two opacity swaps. The
+   section is arriving from off-screen behind its own 1.2s slide; the dial is
+   part of the picture that arrives, not a thing that moves once it is here. */
+.jw.is-held *{
+  transition-duration: 0s !important;
+  transition-delay: 0s !important;
+}
 
 /* ── the arc ─────────────────────────────────────────────────────────── */
 .jw__dialclip{
@@ -375,7 +413,7 @@ const STEP_DEG = 30
    and the block starts at y=580, which is 338px of room for 270px of frames. */
 .jw__strip{
   position: absolute; left: var(--textleft);
-  top: calc(50% + 7rem);
+  top: calc(50% + var(--strip-gap));
   width: var(--textw);
   --jw-strip-h: min(19rem, 30vh);
   height: var(--jw-strip-h);
@@ -389,13 +427,15 @@ const STEP_DEG = 30
   object-fit: cover;
   border-radius: var(--radiusS);
 }
-/* the lead frame: crops to roughly 1.10:1, which is the ratio the file was cut
-   to, so object-fit has almost nothing to throw away */
-.jw__strip img:first-child{ grid-row: 1 / span 2 }
+/* the lead frame: crops to roughly 1.33:1 (1100x825), close enough to the box's
+   own ~1.10:1 that object-fit has little to throw away */
+.jw__strip img:first-child{ grid-row: 1 / span 2; object-position: 50% 55% }
 /* the crew stand across the full width of their frame and the horizon of the
    aerial sits high in its own — centre both and the crop takes the ground */
-.jw__strip img:nth-child(2){ object-position: 50% 42% }
-.jw__strip img:nth-child(3){ object-position: 50% 45% }
+.jw__strip img:nth-child(2){ object-position: 50% 40% }
+/* portrait source (733x1100): the crane and the wrapped unit sit in the
+   frame's lower two-thirds, so the crop favours the ground over the sky */
+.jw__strip img:nth-child(3){ object-position: 50% 55% }
 
 /* ── the award slot ──────────────────────────────────────────────────── */
 /* Measured against orionix's own hero (1440x900, ref2-hero.png): the 3D object
@@ -472,6 +512,23 @@ const STEP_DEG = 30
    collision. */
 @media (min-width: 1100px) and (max-width: 1279px){
   .jw__slot{ right: 3vw; width: min(28vw, 380px); height: min(66vh, 580px) }
+}
+
+/* ── wide desktop / 4K ──
+   Every px cap above (460/660 on the slot, 160 on --cx, 34rem on --textw) was
+   measured against a 1440x900 reference and stops growing past it — on a
+   3840px-wide 4K screen without OS scaling that is 12% of the viewport where
+   the reference held 34%. The vw side of each min() already scales; only the
+   px ceiling needs raising, proportionally, so the ratio the section was
+   designed at (dial radius, award slot, copy column) holds past 1440 instead
+   of flattening out. */
+@media (min-width: 1728px){
+  .jw{ --cx: calc(-1 * min(10.33vw, 220px)); --r: min(31vw, 620px); --step-y: 15rem; --slot-step: 5.6rem; --textw: min(34vw, 40rem) }
+  .jw__slot{ width: min(34vw, 620px); height: min(74vh, 860px) }
+}
+@media (min-width: 2560px){
+  .jw{ --cx: calc(-1 * min(10.33vw, 300px)); --r: min(31vw, 820px); --step-y: 17rem; --slot-step: 6.2rem; --textw: min(34vw, 46rem) }
+  .jw__slot{ width: min(34vw, 800px); height: min(74vh, 1080px) }
 }
 
 /* ── narrow ──────────────────────────────────────────────────────────── */

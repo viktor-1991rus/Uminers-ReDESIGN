@@ -43,77 +43,52 @@ const JOURNEY_STAGES = JOURNEY.length
 const aim = (sx, fit, oy, opacity = 0.60) =>
   ({ fit, offsetX: -(sx - 0.5) * 2 * 1.6 * fit, offsetY: oy, opacity })
 
+/* ── one fixed state ──
+   Owner's call, 24 Aug 2026: the bull no longer re-aims between sections. It
+   used to walk (centre on intro, out to 83% and larger on Company, then a
+   0.58->0.545->0.61 breathing pattern on ai/sites/desk) — four different
+   frames of the same figure, each a real re-aim with its own scatter/gather.
+   That machinery is what the owner is rejecting here, not just the Company
+   extreme: "мне не нравятся как сделаны переходы". One frame now, right of
+   centre (sx 0.62, roughly the ai/sites/desk family's own resting point) —
+   ONE_STATE below, used by every section including Company.
+
+   This reopens the problem the old per-section re-aim solved: the award
+   assets on Company are glass on black with white engraving, and at this fit
+   the bull's dense mass does not reach .jw__slot's position (right: 2vw,
+   ~93% of the viewport). Measured (24 Aug 2026, live Chrome): moving the SLOT
+   instead of the figure cannot close the gap either — the paper right of the
+   copy column and strip carries only ~9% of the viewport in free dark ground,
+   the trophy needs ~32%, and the best fit without colliding the copy column
+   tops out at 1.71:1 contrast at 13% of the trophy's own size, nowhere near
+   the 3:1 the engraving would need. The substance there is also sparse
+   pixelField grain at this opacity/fit, not a solid mass — the letters do not
+   resolve even at full opacity.
+
+   So the engraving is left as photographed, unread on its own, same as any
+   photograph of a physical object catches a highlight — and the words it
+   carries are already set in ink in .jw__award figcaption directly under it,
+   which is where the requirement was always actually being met (see the
+   contrast-sampling note that used to live here, before the re-aim it
+   justified was removed). Nothing to fix: this is accepted, not pending. */
+const ONE_STATE = aim(0.62, 0.56, -0.06)
+
 export const SECTIONS = [
-  /* Centred, because the copy is: .screen__body--centre puts the opening line
-     on the vertical axis of the frame, and a figure standing at 64% behind a
-     centred column reads as the column being off its own axis. At offsetX 0 the
-     bull's own axis and the type's are the same line and the line runs down its
-     chest, where the mass is continuous. */
   { key: 'intro',     label: 'Uminers',   theme: 'light', mark: 'bull',
-    venom: aim(0.50, 0.58, -0.06) },
+    venom: ONE_STATE },
   /* `stages` turns one gesture inside the section into one stop on the dial;
      only a gesture past the last stop moves the deck (see step() below). The
      count is read from the data file so the two cannot drift apart — see
      src/data/journey.js. */
   { key: 'company',   label: 'Company',   theme: 'light', mark: 'bull',
     stages: JOURNEY_STAGES,
-    /* The bull, larger and re-aimed right — a different frame of the same
-       figure, not another mark. Here it is the GROUND the trophies stand on:
-       the award assets are glass rendered on black with white engraving, so on
-       the paper (#F2F0EA) the engraving lands on the paper value exactly and
-       disappears. Rather than treat the asset (an earlier build inverted it,
-       which the owner rejected), the substance moves under it.
-
-       fit 0.42 against the deck's 0.58 is roughly a third more figure — up
-       from 0.46 on the owner's note of 24 Aug 2026 that it should be bigger —
-       and offsetX -0.4435 is that fit put back through
-       -(0.83 - 0.5) x 2 x aspect x fit at 16:9, so the mark's centre stays on
-       83% of the viewport width, the centre of .jw__slot (right: 2vw,
-       width min(34vw, 460px)) in JourneyWheel.vue. offsetY -0.04, i.e.
-       slightly DOWN (positive is up in this space): it drops the muzzle under
-       the trophy's waist and leaves the horns rising either side of it, so the
-       mark frames the object instead of standing behind its top third where
-       the glass is clear and there is nothing to hold.
-
-       Measured, not eyed. Sampling the engraved caption band on the 2022
-       trophy (175x46 px at 1440x900, x 1089 y 473 — 29-69% across and
-       59.8-67.6% down the asset's own box), glyph = the 94th percentile of
-       linear luminance, ground = the 27th:
-
-         fit 0.50 / oy -0.06     3.21:1
-         fit 0.46 / oy -0.06     3.38:1   <- what this was
-         fit 0.44 / oy -0.06     3.11:1
-         fit 0.42 / oy -0.06     3.39:1
-         fit 0.42 / oy -0.04     3.4:1    <- this, and a third more figure
-         fit 0.42 / oy -0.14     3.19:1
-         fit 0.40 / oy -0.06     3.40:1
-
-       So the enlargement is free: within the noise of a dot field, 0.42 prints
-       the same ground under the engraving that 0.46 did. It is not 4.5:1 and
-       that is not claimed. The engraving is a photographed surface, not the
-       section's text — the same words are set in ink in the figcaption
-       directly under it, which is where the requirement is actually met. If
-       the engraving itself has to clear 4.5:1, no value of these four numbers
-       will do it: the substance is a dot field at roughly a third coverage and
-       the trophy's own body is translucent, so it lightens whatever it stands
-       on. That needs a solid ground, not a denser mark. */
-    venom: aim(0.83, 0.42, -0.04, 1.0) },
-  /* The last three are the same left-column layout and the figure stands right
-     of the copy on all of them — but not on the same spot, and that is
-     deliberate. Two sections that ask for an identical frame give the substance
-     nothing to change, so the deck step between them would be the only one with
-     no scatter in it: the figure would simply be standing there while the
-     screens swapped. So it walks: 0.58 -> 0.545 -> 0.61 in fit, 64% -> 66% ->
-     63% across, with the vertical alternating by 0.03. Every step is a real
-     re-aim, none of it crosses the copy column (which ends at x=693 at 1440,
-     and the mark's left flank starts at 640 at its widest), and the whole set
-     reads as one figure breathing in depth rather than four positions. */
+    venom: ONE_STATE },
   { key: 'ai',        label: 'AI compute', theme: 'white', mark: 'bull',
-    venom: aim(0.64, 0.580, -0.06) },
+    venom: ONE_STATE },
   { key: 'sites',     label: 'Sites',     theme: 'light', mark: 'bull',
-    venom: aim(0.66, 0.545, -0.03) },
+    venom: ONE_STATE },
   { key: 'desk',      label: 'Sourcing desk', theme: 'light', mark: 'bull',
-    venom: aim(0.63, 0.610, -0.08) }
+    venom: ONE_STATE }
 ]
 
 const LOCK_MS = 1750         // one section per gesture, and the change is a
@@ -130,7 +105,19 @@ const state = reactive({
   stage: 0,        // position inside a staged section; 0 for every other one
   dir: 1,          // +1 arriving from the right, -1 from the left
   locked: false,
-  ready: false     // the intro gate has handed the screen over
+  ready: false,    // the intro gate has handed the screen over
+  /* Bumped whenever the stage changed because the SECTION changed rather than
+     because the dial was turned. Measured on the step ai → company (arrow left,
+     24 Aug 2026): entering a staged section backwards lands it on stage 8, and
+     the wheel read that as a turn — 240deg of ring and 1664px of copy column in
+     one 820ms transition, peaking at 4980 px/s between 100 and 300ms, on top of
+     a section that was still arriving. Nine stacked slides smearing past at
+     five thousand pixels a second is not a dial turning; it is the reason this
+     section was reported as hanging. A section change is an ARRIVAL — the
+     screen was not on the page a frame ago — so the dial simply arrives already
+     on its stop. Consumers watch this counter and suppress their own transition
+     for that one update; see JourneyWheel.vue. */
+  jump: 0
 })
 
 export const deck = readonly(state)
@@ -156,6 +143,7 @@ export function go(next, dir) {
   // entering a staged section backwards lands on its last stage, so reversing
   // into it walks back down the dial instead of jumping to its first stop
   state.stage = state.dir < 0 ? stagesOf(target) - 1 : 0
+  state.jump++
   lock(LOCK_MS)
   for (const fn of listeners) fn(SECTIONS[target], state.dir)
   for (const fn of stageListeners) fn(SECTIONS[target], state.stage, state.dir)
