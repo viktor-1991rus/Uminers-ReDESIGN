@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="180" height="124" viewBox="0 0 180 124">
+  <!-- rack: three 1U nodes, drive slots left, status dots right -->
+  <path fill="#000" fill-rule="evenodd" d="
+    M8 0 h164 a8 8 0 0 1 8 8 v20 a8 8 0 0 1 -8 8 h-164 a8 8 0 0 1 -8 -8 v-8 a8 8 0 0 1 8 -8 z
+    M18 12 h68 v12 h-68 z M150 12 a6 6 0 1 0 0.001 0 z" transform="translate(0 4) scale(1 0.78)"/>
+  <path fill="#000" fill-rule="evenodd" d="
+    M8 0 h164 a8 8 0 0 1 8 8 v20 a8 8 0 0 1 -8 8 h-164 a8 8 0 0 1 -8 -8 v-8 a8 8 0 0 1 8 -8 z
+    M18 12 h68 v12 h-68 z M150 12 a6 6 0 1 0 0.001 0 z" transform="translate(0 48) scale(1 0.78)"/>
+  <path fill="#000" fill-rule="evenodd" d="
+    M8 0 h164 a8 8 0 0 1 8 8 v20 a8 8 0 0 1 -8 8 h-164 a8 8 0 0 1 -8 -8 v-8 a8 8 0 0 1 8 -8 z
+    M18 12 h68 v12 h-68 z M150 12 a6 6 0 1 0 0.001 0 z" transform="translate(0 92) scale(1 0.78)"/>
+</svg>

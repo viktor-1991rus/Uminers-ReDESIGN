@@ -1,0 +1,1053 @@
+/* ═══════════════════════════════════════════════════════════════════════
+   UMINERS DESIGN SYSTEM
+   Scale, spacing, rhythm and components follow one reference grid 1:1.
+   Ours: Manrope, a cooled neutral ramp, and a turquoise accent that warms
+   to orange on hover. Re-skin the whole site by editing this file alone.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* ── 0. font ───────────────────────────────────────────────────────────── */
+@font-face{
+  font-family: "Manrope";
+  src: url("/fonts/Manrope-Variable.woff2") format("woff2-variations");
+  font-weight: 200 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ── 1. tokens ─────────────────────────────────────────────────────────── */
+:root{
+  --base: 0.625rem;                    /* 10px */
+
+  /* type — fixed rem steps, no clamp() and no vw anywhere */
+  --typeSizeSmall:  12px;
+  --typeSizeNormal: 16px;
+  --typeSizeLarge:  24px;
+  --headingS:  16px;
+  --headingM:  20px;
+  --headingL:  24px;
+  --headingXL: 32px;
+  --headingXXL:36px;
+
+  --lineHeightXS: .95;
+  --lineHeightS:  1.08;
+  --lineHeightM:  1.32;
+  --lineHeightL:  1.5;
+  --letterSpacingTight:  -.035em;
+  --letterSpacingNormal: -.018em;
+
+  --weightBody: 400;
+  --weightMid:  500;
+  --weightBold: 700;
+
+  /* spacing */
+  --spacingXXS: 2px;
+  --spacingXS:  4px;
+  --spacingS:   10px;
+  --spacingM:   16px;
+  --spacingL:   24px;
+  --spacingXL:  32px;
+  --spacingXXL: 36px;
+
+  --fontSans: "Manrope", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --fontMono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+
+  /* neutrals — warmed toward craft paper; the grain overlay finishes the effect */
+  --ink:        #191817;
+  --ink-soft:   #23211F;
+  --ink-mid:    #33302B;
+  --step-bg:    #1E1C1A;
+  --paper:      #F2F0EA;
+  --paper-line: #CBC6BA;
+  --paper-text: #E2DFD6;
+  --white:      #FCFBF7;
+  --black:      #000000;
+
+  /* accent — turquoise that warms to orange on hover */
+  --accent:       #00C1AD;
+  --accent-warm:  #EA591A;
+  --accent-ink:   #04211D;
+  --lime:         #D9F99D;
+
+  /* layout */
+  --padding: 16px;
+  --grid-gap: 8px;
+  --radiusS: 4px;
+  --radiusM: 8px;
+  --radiusPill: 999rem;
+  --wrapper: 1320px;
+
+  --nav-background: var(--ink);
+  --nav-foreground: var(--white);
+}
+@media (min-width: 768px){
+  :root{
+    --headingL: 32px;
+    --headingXL: 48px;
+    --headingXXL: 64px;
+    --spacingS: 12px;
+    --spacingL: 32px;
+    --spacingXL: 48px;
+    --spacingXXL: 64px;
+  }
+}
+@media (min-width: 1024px){
+  :root{ --typeSizeSmall: 14px; --padding: 8px; }
+}
+/* ── the desktop step ──
+   Measured against orionix.framer.website at 1440x900 (scratchpad/ref2-hero.png):
+   its h1 is 72px / 76px line / -2.98px tracking (= -0.0414em), and the paragraph
+   under it is 16/24. The house scale topped out at 64/48 from the 768px step
+   upward, so on a 1440-wide screen every heading on the deck was set 11-17%
+   smaller than the reference it is being judged against while sitting in far
+   more air — which is the whole of "всё мелко". This step exists only above
+   1280, where there is room for it; nothing below that breakpoint moves.
+   76 rather than 72 because our --lineHeightXS is .95 against the reference's
+   1.056, so an identical cap height needs a slightly larger em. */
+@media (min-width: 1280px){
+  :root{
+    --headingM:  22px;
+    --headingL:  36px;
+    --headingXL: 56px;
+    --headingXXL: 76px;
+    --typeSizeLarge: 26px;
+  }
+}
+
+/* ── 1b. motion ────────────────────────────────────────────────────────────
+   One language of movement for the whole site. Nothing below this line, and
+   nothing in any component, declares a raw millisecond value again.
+
+   Two hard rules go with these tokens, and they are why the deck stuttered on
+   Windows while it looked fine on a Mac:
+
+   · Only `transform` and `opacity` are ever transitioned with them. Those are
+     the only two properties Chrome can run on the compositor thread. A
+     transition on width / top / filter / backdrop-filter is re-laid-out or
+     re-painted on the main thread on every single frame. Apple silicon
+     absorbs that cost and an integrated Intel GPU does not, which is exactly
+     the machine split the owner is seeing.
+
+   · Any JS easing uses `1 - Math.pow(k, dt)`, never a fixed per-frame factor.
+     A fixed factor is a different speed at 60Hz, 120Hz and 144Hz and jumps
+     whenever a frame is dropped. venom.js and pixelField.js already do this
+     correctly; new code must too, and dt is clamped at 1/30s so a backgrounded
+     tab does not return and teleport.
+*/
+:root{
+  --dur-xs:  140ms;    /* a state flip: tick, dot, chip */
+  --dur-s:   260ms;    /* something leaving */
+  --dur-m:   420ms;    /* a hover, a colour */
+  --dur-l:   680ms;    /* something arriving */
+  --dur-xl:  820ms;    /* a whole block travelling */
+  --dur-xxl: 1200ms;   /* a screen change */
+
+  /* the house curve: fast pickup, long settle, never overshoots.
+     Already the de-facto curve of this file (.btn, .tile, .drawer, .film). */
+  --ease:      cubic-bezier(.22, 1, .36, 1);
+  /* for something that is TURNED rather than released — a dial has mass, so
+     it takes a moment to pick up, but it must not bounce past its stop.
+     An overshoot on a rotation reads as a loose bearing, not as physics. */
+  --ease-turn: cubic-bezier(.36, 0, .1, 1);
+  /* for something leaving the screen: no settle, it is gone */
+  --ease-in:   cubic-bezier(.4, 0, 1, 1);
+  --ease-flat: cubic-bezier(.4, 0, .2, 1);
+
+  /* one stage step inside a staged section (deck.js `stages`).
+     --stage-dur must stay under STAGE_LOCK_MS (900ms) in src/lib/deck.js, or
+     the next gesture is accepted while the last one is still moving. */
+  --stage-dur:      820ms;
+  --stage-out:      240ms;   /* the outgoing block clears first */
+  --stage-in:       460ms;   /* the incoming block arrives inside the travel */
+  --stage-in-delay: 300ms;
+}
+
+/* ── 2. themes ─────────────────────────────────────────────────────────── */
+html[data-theme="dark"]{
+  --background: #33302B; --foreground: #FCFBF7; --elevated: #23211F;
+  --hairline: rgba(252,251,247,.17); --faded: rgba(252,251,247,.55);
+}
+html[data-theme="black"]{
+  --background: #191817; --foreground: #FCFBF7; --elevated: #23211F;
+  --hairline: rgba(252,251,247,.15); --faded: rgba(252,251,247,.55);
+}
+html[data-theme="light"]{
+  --background: #F2F0EA; --foreground: #191817; --elevated: #E8E5DC;
+  --hairline: rgba(25,24,23,.16); --faded: rgba(25,24,23,.52);
+}
+html[data-theme="white"]{
+  --background: #FCFBF7; --foreground: #191817; --elevated: #F2F0EA;
+  --hairline: rgba(25,24,23,.14); --faded: rgba(25,24,23,.52);
+}
+
+/* ── 3. base ───────────────────────────────────────────────────────────── */
+*,*::before,*::after{ box-sizing: border-box }
+[hidden]{ display: none !important }
+
+html{
+  background: var(--background);
+  color: var(--foreground);
+  transition: background 1.2s ease, color 1.2s ease;   /* the whole page turns */
+  scroll-behavior: smooth;
+  scroll-padding-top: 25dvh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+body{
+  margin: 0;
+  font: var(--weightBody) var(--typeSizeNormal)/var(--lineHeightM) var(--fontSans);
+  letter-spacing: var(--letterSpacingNormal);
+}
+h1,h2,h3{
+  font: inherit;
+  font-weight: var(--weightMid);
+  letter-spacing: var(--letterSpacingTight);
+  line-height: var(--lineHeightXS);
+  margin: 0;
+  text-wrap: balance;
+}
+h4,h5,h6{ font-weight: var(--weightBold); margin: 0 }
+p{ margin: 0; text-wrap: pretty; max-width: 35em;
+   line-height: var(--lineHeightM); letter-spacing: var(--letterSpacingNormal) }
+img,svg,video,canvas{ max-width: 100%; display: block }
+
+/* craft grain — micro noise over the whole page, barely there.
+   steps() shifts a fixed oversized tile so the grain lives without ever
+   reading as an animation. multiply keeps it invisible on the dark themes. */
+body::after{
+  content: "";
+  position: fixed; inset: -60% -60%;
+  width: 220%; height: 220%;
+  pointer-events: none;
+  z-index: 3;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='280' height='280'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.86' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 280px 280px;
+  opacity: .042;
+  mix-blend-mode: multiply;
+  animation: grain-shift 7s steps(7) infinite;
+}
+@keyframes grain-shift{
+  0%   { transform: translate(0, 0) }
+  15%  { transform: translate(-1.2%, 0.8%) }
+  30%  { transform: translate(0.7%, -1.4%) }
+  45%  { transform: translate(-0.9%, -0.6%) }
+  60%  { transform: translate(1.3%, 1.0%) }
+  75%  { transform: translate(-0.5%, 1.2%) }
+  90%  { transform: translate(0.9%, -0.9%) }
+  100% { transform: translate(0, 0) }
+}
+
+a{
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, currentColor 35%, transparent);
+  text-underline-offset: .18em;
+  transition: text-decoration-color .25s ease, color .25s ease;
+}
+@media (hover: hover){ a:hover{ text-decoration-color: currentColor } }
+a.plain{ text-decoration: none }
+::selection{ background: var(--accent); color: var(--accent-ink) }
+
+:focus-visible{ outline: 2px solid var(--accent); outline-offset: 3px }
+
+/* ── 4. layout ─────────────────────────────────────────────────────────── */
+.wrapper{ max-width: var(--wrapper); margin: 0 auto;
+          padding-inline: max(var(--padding), 20px); width: 100% }
+.section{ position: relative; z-index: 1; padding-block: calc(var(--spacingXXL) * 2) }
+.section--flush{ padding-block: 0 }
+
+/* ── 5. type utilities ─────────────────────────────────────────────────── */
+/* balance stops a heading breaking as "Compute is / limited by power, / not by
+   chips." — the browser evens the lines instead of filling each one to the
+   container edge. pretty does the same job for body copy, killing orphans. */
+.type-xxl, .type-xl, .type-l, h1, h2, h3{ text-wrap: balance }
+.body, .lede{ text-wrap: pretty }
+
+.type-xxl{ font-size: var(--headingXXL); line-height: var(--lineHeightXS);
+           letter-spacing: var(--letterSpacingTight); font-weight: var(--weightMid) }
+.type-xl { font-size: var(--headingXL);  line-height: var(--lineHeightXS);
+           letter-spacing: var(--letterSpacingTight); font-weight: var(--weightMid) }
+.type-l  { font-size: var(--headingL);   line-height: var(--lineHeightS);
+           letter-spacing: var(--letterSpacingTight); font-weight: var(--weightMid) }
+.type-m  { font-size: var(--headingM);   line-height: var(--lineHeightS);
+           letter-spacing: var(--letterSpacingTight); font-weight: var(--weightMid) }
+
+.statement{
+  font-size: var(--headingXL);
+  line-height: 1.12;
+  letter-spacing: var(--letterSpacingTight);
+  font-weight: var(--weightMid);
+  max-width: 24em;
+}
+.body{ font-size: var(--typeSizeNormal); line-height: var(--lineHeightM);
+       max-width: 37em; letter-spacing: var(--letterSpacingNormal) }
+.body + .body{ margin-top: var(--spacingM) }
+h1 + .body, h2 + .body, h3 + .body,
+.type-xxl + .body, .type-xl + .body, .type-l + .body{ margin-top: var(--spacingL) }
+h2 + .lede, .type-xl + .lede{ margin-top: var(--spacingL) }
+.body strong{ font-weight: var(--weightBold) }
+.lede{ font-size: var(--typeSizeLarge); line-height: 1.24;
+       letter-spacing: var(--letterSpacingNormal); max-width: 28em;
+       font-weight: var(--weightBold) }
+
+/* ── 6. micro labels ───────────────────────────────────────────────────── */
+.label{
+  font-family: var(--fontMono);
+  font-size: var(--typeSizeSmall);
+  line-height: var(--lineHeightS);
+  letter-spacing: 0;
+  text-transform: uppercase;
+  font-weight: 400;
+  color: currentColor;
+  margin: 0;
+  max-width: none;
+}
+.label--block{ margin-bottom: var(--spacingXXL) }
+.label--faded{ color: var(--faded) }
+
+.usage{
+  font-size: var(--typeSizeNormal);
+  letter-spacing: var(--letterSpacingNormal);
+  font-weight: var(--weightMid);
+  margin: 0 0 var(--spacingM);
+  max-width: none;
+}
+
+/* ── 6b. grid markers — plus signs and rule ticks, used sparingly ──────── */
+.gmarks{ position: absolute; inset: 0; pointer-events: none }
+.gmark{
+  position: absolute; width: 9px; height: 9px;
+  color: var(--foreground); opacity: .3;
+}
+.gmark::before,.gmark::after{ content: ""; position: absolute; background: currentColor }
+.gmark::before{ left: 0; right: 0; top: 4px; height: 1px }
+.gmark::after{ top: 0; bottom: 0; left: 4px; width: 1px }
+.gmark--tl{ top: 0; left: 0 }
+.gmark--tr{ top: 0; right: 0 }
+.gmark--bl{ bottom: 0; left: 0 }
+.gmark--br{ bottom: 0; right: 0 }
+
+.ticks{
+  height: 7px;
+  background-image: repeating-linear-gradient(90deg,
+    currentColor 0 1px, transparent 1px 28px);
+  opacity: .22;
+  margin-bottom: var(--spacingL);
+}
+
+/* ── 7. viewfinder ─────────────────────────────────────────────────────── */
+.viewfinder{
+  display: flex; width: 100%; justify-content: space-between;
+  z-index: 50; color: currentColor;
+}
+.viewfinder svg{ width: 10px; height: 10px; overflow: visible; flex: 0 0 auto }
+.viewfinder path{ stroke: currentColor; stroke-width: 1; fill: none;
+                  vector-effect: non-scaling-stroke }
+.viewfinder--top{ margin-bottom: var(--spacingL) }
+.viewfinder--bottom{ margin-top: var(--spacingXL) }
+
+.viewfinder-title{
+  font-family: var(--fontMono);
+  font-size: var(--typeSizeSmall);
+  text-transform: uppercase;
+  line-height: var(--lineHeightS);
+  display: flex; align-items: flex-start; gap: var(--grid-gap);
+  margin-bottom: var(--spacingS);
+}
+.viewfinder-title::before{
+  content: ""; display: block; width: 1px; height: 1.15em;
+  background: currentColor; flex: 0 0 auto; transform: translateY(-1px);
+}
+
+/* ── 8. buttons ────────────────────────────────────────────────────────── */
+.btn{
+  all: unset;
+  box-sizing: border-box;
+  border-radius: var(--radiusPill);
+  height: calc(var(--base) * 3.4);
+  padding-inline: calc(var(--base) * 1.5);
+  display: inline-flex; align-items: center; justify-content: center;
+  gap: var(--grid-gap);
+  font-family: var(--fontSans);
+  font-size: var(--typeSizeSmall);
+  font-weight: var(--weightMid);
+  letter-spacing: var(--letterSpacingNormal);
+  white-space: nowrap; cursor: pointer;
+  border: 1px solid transparent;
+  background: var(--nav-background);
+  color: var(--nav-foreground);
+  transition: background .55s cubic-bezier(.22,1,.36,1),
+              color .4s cubic-bezier(.22,1,.36,1),
+              border-color .4s cubic-bezier(.22,1,.36,1),
+              opacity .5s ease-out, transform .5s ease-out, visibility .5s;
+}
+.btn:hover{ background: var(--ink-mid) }
+.btn > span{ line-height: 100% }
+
+/* turquoise, warming to orange — the one hue change in the system */
+.btn--primary{ background: var(--accent); color: var(--accent-ink) }
+.btn--primary:hover,
+.btn--primary:focus-visible{ background: var(--accent-warm); color: var(--accent-ink) }
+
+.btn--transparent{ background: transparent; border-color: currentColor; color: currentColor }
+.btn--transparent:hover{ background: transparent;
+  border-color: var(--accent); color: var(--accent) }
+
+.btn--hidden{ opacity: 0; transform: translateY(-10%); visibility: hidden }
+
+.btn__plus{ width: 10px; height: 10px; position: relative; display: inline-block; flex: 0 0 auto }
+.btn__plus::before,.btn__plus::after{ content: ""; position: absolute; background: currentColor }
+.btn__plus::before{ left: 0; right: 0; top: 4.5px; height: 1px }
+.btn__plus::after{ top: 0; bottom: 0; left: 4.5px; width: 1px; transition: transform .25s ease }
+[data-open="true"] .btn__plus::after{ transform: scaleY(0) }
+
+.actions{ display: flex; gap: var(--grid-gap); flex-wrap: wrap }
+
+/* ── 9. header + menu ──────────────────────────────────────────────────── */
+.header{
+  position: fixed; inset: 0 0 auto 0;
+  max-width: 2000px; margin: 0 auto;
+  padding: var(--padding);
+  z-index: 9999;
+  max-height: 100dvh; overflow: hidden;
+  display: flex; flex-direction: column; gap: var(--base);
+}
+/* ── glass, and only where the page actually scrolls ──
+   A fixed bar over a page that never moves has nothing to separate itself
+   from: the deck (DeckView) exchanges whole screens in place, so a frosted
+   plate there would be a permanent grey band over a composition that was built
+   full-bleed. On a scrolling view — the catalogue — type runs under the bar and
+   the separation has to exist.
+
+   Opt-in by prop rather than by a runtime scroll listener: `<SiteHeader glass />`
+   in CatalogueView.vue. Which pages scroll is a fact about the route, known at
+   author time; measuring scrollTop on every frame to rediscover it would be a
+   heuristic standing in for something already known.
+
+   The recipe is the deck menu's, so the site has one glass and not two:
+   the ground colour thinned to 80% plus blur(10px), tracking --background
+   through every theme.
+
+   ── it arrives with the scroll (owner, 24 Aug 2026) ──
+   The prop is still the gate, because which routes scroll is a fact about the
+   route. What it gates is a plate whose opacity is --glass-progress: 0 at the
+   top of the document, 1 at 120px, set from SiteHeader's own scroll listener.
+   At the top of a page the bar has nothing under it and no reason to be a
+   plate; by the time the first block reaches it, it is one.
+
+   The plate is a ::before rather than the bar itself so what fades is an
+   opacity on an already-filtered layer — the blur radius is a constant 10px and
+   is never re-evaluated per frame, which is the difference between a composite
+   and a repaint of the whole viewport behind the bar. */
+.header--glass::before{
+  content: "";
+  position: absolute; inset: 0;
+  pointer-events: none;
+  background: color-mix(in srgb, var(--background) 80%, transparent);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid color-mix(in srgb, var(--foreground) 8%, transparent);
+  opacity: var(--glass-progress, 0);
+  transition: opacity .18s linear, background .5s ease, border-color .5s ease;
+}
+.header--glass > *{ position: relative }
+.header__row{ display: flex; align-items: center; gap: var(--grid-gap) }
+/* full logotype with the slogan line, monochrome via mask — it recolors
+   with the theme like every other foreground element, no container shape */
+.header__logo{
+  display: block; flex: 0 0 auto;
+  width: 138px; aspect-ratio: 620 / 123;
+  background: currentColor; color: var(--foreground);
+  -webkit-mask: url("/assets/logo/uminers-full.svg") no-repeat left center / contain;
+  mask: url("/assets/logo/uminers-full.svg") no-repeat left center / contain;
+  transition: color 1.2s ease;
+}
+@media (max-width: 767px){ .header__logo{ width: 112px } }
+.header__cta{ margin-left: auto }
+
+.menu{
+  width: 100%; max-width: 450px;
+  display: grid; grid-template-columns: repeat(2, 1fr);
+  grid-auto-rows: 1fr; gap: var(--spacingXS);
+  font-family: var(--fontMono); text-transform: uppercase;
+  overflow-y: auto;
+}
+.menu__item{
+  grid-column: span 2;
+  background: var(--nav-background); color: var(--nav-foreground);
+  padding: var(--padding);
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: var(--typeSizeSmall); text-decoration: none;
+  transition: background .25s ease, color .25s ease;
+}
+.menu__item--half{ grid-column: span 1 }
+.menu__arrow{ font-style: normal; opacity: 0; transform: translateY(var(--base));
+              transition: opacity .25s ease-out, transform .25s ease-out }
+.menu__item:hover{ background: var(--ink-mid); color: var(--accent) }
+.menu__item:hover .menu__arrow{ opacity: 1; transform: translateY(0) }
+.menu-overlay{ position: fixed; inset: 0; z-index: 50; background: rgba(0,0,0,.85);
+               opacity: 0; pointer-events: none; transition: opacity .3s ease }
+.menu-overlay.is-on{ opacity: 1 }
+
+/* ── 10. substance canvas ──────────────────────────────────────────────── */
+/* multiply is what makes the white ground vanish into the page.
+   Leaving is fast on purpose: the page theme takes 1.2s to go dark, and a
+   slow fade-out would leave dark text sitting on a dark substance. */
+#venom{
+  position: fixed; inset: 0; width: 100%; height: 100%;
+  z-index: -1; pointer-events: none;
+  mix-blend-mode: multiply;
+  opacity: 0;
+  transition: opacity .18s linear;
+}
+#venom.is-on{ opacity: 1; transition: opacity .9s ease-out }
+html[data-theme="dark"] #venom,
+html[data-theme="black"] #venom{ opacity: 0; transition: opacity .12s linear }
+
+/* ── 10b. pixel field ──────────────────────────────────────────────────── */
+/* The paper's micro texture. Backing store is one texel per cell and CSS does
+   the upscale, so pixelated is load-bearing, not a style choice — smoothing it
+   turns the grid into a blur and the texture stops reading as pixels.
+   Sits under the substance; multiply keeps untouched texels invisible. */
+#pixelfield{
+  position: fixed; inset: 0; width: 100%; height: 100%;
+  z-index: -2; pointer-events: none;
+  mix-blend-mode: multiply;
+  image-rendering: pixelated;
+  opacity: 1;
+  transition: opacity .6s ease;
+}
+/* the light grounds only — on the dark themes it would read as dirt */
+html[data-theme="dark"] #pixelfield,
+html[data-theme="black"] #pixelfield{ opacity: 0; transition: opacity .2s linear }
+
+/* ── 11. hero ──────────────────────────────────────────────────────────── */
+.hero{
+  min-height: 100svh;
+  display: flex; flex-direction: column;
+  padding-top: 96px; padding-bottom: var(--spacingXL);
+}
+.hero__body{ margin-top: auto; padding-top: 42svh; position: relative }
+.hero h1{ font-size: var(--headingXXL); line-height: var(--lineHeightXS);
+          letter-spacing: var(--letterSpacingTight);
+          margin-bottom: var(--spacingXL) }
+.hero h1 > .line{ display: block; clear: both }
+.hero .label--block{ margin-bottom: var(--spacingL) }
+
+/* half-height cover — the catalogue keeps its products above the fold */
+.hero--half{
+  min-height: 34svh;
+  padding-top: 60px;
+  padding-bottom: var(--spacingL);
+}
+.hero--half .hero__body{ padding-top: 0 }
+.hero--half h1{ margin-bottom: 0 }
+
+/* tighter section start, used right after a half cover */
+.section-tight{ padding-block: var(--spacingXL) calc(var(--spacingXXL) * 2) }
+
+/* ── 12. clusters ──────────────────────────────────────────────────────── */
+.cluster{ display: grid; grid-template-columns: 1fr; gap: var(--spacingXXL);
+          align-items: center }
+@media (min-width: 900px){
+  .cluster{ grid-template-columns: 1fr 1fr; gap: calc(var(--spacingXXL) * 1.3) }
+  .cluster--flip .cluster__text{ order: 2 }
+}
+.cluster__media{ margin: 0 }
+.cluster__media img{ width: 100%; aspect-ratio: 4/3; object-fit: cover;
+                     border-radius: var(--radiusM) }
+.cluster__text .body{ margin-top: var(--spacingL) }
+
+/* ── 13. plate ─────────────────────────────────────────────────────────── */
+.plate{ margin: 0 }
+.plate img{ width: 100%; border-radius: var(--radiusM) }
+.plate figcaption{ margin-top: var(--spacingS); color: var(--faded) }
+
+/* ── 14. capability grid (animated icons) ──────────────────────────────── */
+.caps{
+  display: grid; grid-template-columns: 1fr; gap: 1px;
+  margin-top: var(--spacingXL);
+  background: var(--hairline);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radiusM);
+  overflow: hidden;
+}
+@media (min-width: 680px){ .caps{ grid-template-columns: repeat(2, 1fr) } }
+@media (min-width: 1040px){ .caps{ grid-template-columns: repeat(3, 1fr) } }
+.cap{
+  background: var(--background);
+  padding: var(--spacingL);
+  display: flex; flex-direction: column; gap: var(--spacingM);
+  min-height: 216px;
+  transition: background .4s ease;
+}
+.cap:hover{ background: var(--elevated) }
+.cap__name{ font-size: var(--headingM); font-weight: var(--weightMid);
+            letter-spacing: var(--letterSpacingTight); line-height: var(--lineHeightS) }
+.cap__text{ font-size: var(--typeSizeNormal); line-height: var(--lineHeightM);
+            color: var(--faded); max-width: 26em }
+
+/* ── 15. step boxes ────────────────────────────────────────────────────── */
+.steps{ display: grid; grid-template-columns: 1fr; gap: var(--spacingXS);
+        margin-top: var(--spacingXL) }
+@media (min-width: 860px){ .steps{ grid-template-columns: repeat(3, 1fr) } }
+.step{
+  background: var(--step-bg); color: var(--paper-text);
+  padding: var(--spacingL); border-radius: var(--radiusM);
+  display: flex; flex-direction: column; gap: var(--spacingM);
+  min-height: 240px;
+}
+.step__title{ font-size: 14px; line-height: 14px; text-transform: uppercase;
+              letter-spacing: var(--letterSpacingNormal); font-weight: var(--weightMid) }
+.step__body{ font-size: var(--typeSizeNormal); line-height: var(--lineHeightM); max-width: none }
+.step .btn{ margin-top: auto; align-self: flex-start }
+
+/* ── 16. disclosure cards ──────────────────────────────────────────────── */
+.cards{ display: grid; grid-template-columns: 1fr; gap: var(--spacingXL);
+        margin-top: calc(var(--spacingXXL) * 1.2) }
+@media (min-width: 900px){ .cards{ grid-template-columns: 1fr 1fr } }
+.card{ border-top: 1px solid var(--hairline); padding-top: var(--spacingL) }
+.card h3{ font-size: var(--headingL); margin-bottom: var(--spacingM) }
+.card__lede{ font-weight: var(--weightBold); margin-bottom: var(--spacingM) }
+.card__more{ overflow: hidden }
+.card__more > *{ margin-top: var(--spacingM) }
+.card__more h4{ font-size: var(--typeSizeNormal); margin-bottom: var(--spacingXS) }
+.disclose{
+  all: unset; box-sizing: border-box; cursor: pointer;
+  margin-top: var(--spacingL);
+  display: inline-flex; align-items: center; gap: var(--grid-gap);
+  border-radius: var(--radiusPill);
+  height: 34px; padding-inline: 15px;
+  background: var(--elevated); color: var(--foreground);
+  font-size: var(--typeSizeSmall); font-weight: var(--weightMid);
+  letter-spacing: var(--letterSpacingNormal);
+  transition: background .3s ease, color .3s ease;
+}
+.disclose:hover{ background: var(--accent); color: var(--accent-ink) }
+.disclose__chevron{ transition: transform .3s ease; font-style: normal }
+.disclose[aria-expanded="true"] .disclose__chevron{ transform: rotate(180deg) }
+
+/* ── 17. quote ─────────────────────────────────────────────────────────── */
+.quote{
+  margin: calc(var(--spacingXXL) * 1.1) 0 0;
+  border-top: 1px solid var(--hairline);
+  padding-top: var(--spacingL);
+}
+.quote blockquote{
+  margin: 0; font-size: var(--headingL); line-height: var(--lineHeightS);
+  letter-spacing: var(--letterSpacingTight); font-weight: var(--weightMid);
+  max-width: 30em; text-wrap: pretty;
+}
+.quote figcaption{ margin-top: var(--spacingM); color: var(--faded) }
+.quote + .body, .quote + .split{ margin-top: var(--spacingXL) }
+
+/* ── 18. awards ────────────────────────────────────────────────────────── */
+.awards{ display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--spacingM);
+         margin-top: calc(var(--spacingXXL) * 1.1) }
+@media (min-width: 900px){ .awards{ grid-template-columns: repeat(4, 1fr); gap: var(--spacingL) } }
+.award{ margin: 0; border-top: 1px solid var(--hairline); padding-top: var(--spacingM) }
+.award img{ width: 100%; height: 200px; object-fit: contain; object-position: bottom;
+            margin-bottom: var(--spacingM) }
+.award figcaption{ font-size: var(--typeSizeSmall); line-height: 1.45 }
+.award .label{ display: block; color: var(--faded); margin-bottom: 6px }
+
+/* ── 19. timeline ──────────────────────────────────────────────────────── */
+.timeline{ margin-top: calc(var(--spacingXXL) * 1.1); border-top: 1px solid var(--hairline) }
+.timeline__row{
+  display: grid; grid-template-columns: 1fr; gap: var(--spacingXS);
+  padding-block: var(--spacingL); border-bottom: 1px solid var(--hairline);
+}
+@media (min-width: 760px){
+  .timeline__row{ grid-template-columns: 116px 1fr; gap: var(--spacingXL);
+                  align-items: baseline }
+}
+.timeline__year{ color: var(--faded) }
+.timeline__text{ max-width: 44em }
+
+/* ── 20. catalogue tiles ───────────────────────────────────────────────── */
+.tiles{ display: grid; grid-template-columns: 1fr; gap: var(--spacingXS);
+        margin-top: var(--spacingXL) }
+@media (min-width: 700px){ .tiles{ grid-template-columns: repeat(2, 1fr) } }
+@media (min-width: 1060px){ .tiles{ grid-template-columns: repeat(3, 1fr) } }
+.tile{
+  background: var(--elevated); border-radius: var(--radiusM);
+  padding: var(--spacingL); min-height: 210px;
+  display: flex; flex-direction: column; gap: var(--spacingS);
+  text-decoration: none;
+  transition: background .4s ease, transform .4s cubic-bezier(.22,1,.36,1);
+}
+.tile:hover{ transform: translateY(-3px) }
+.tile__name{ font-size: var(--headingM); font-weight: var(--weightMid);
+             letter-spacing: var(--letterSpacingTight); line-height: var(--lineHeightS) }
+.tile__meta{ margin-top: auto; color: var(--faded); transition: color .3s ease }
+.tile:hover .tile__meta{ color: var(--accent) }
+.tile__arrow{ font-style: normal; display: inline-block;
+              transition: transform .3s cubic-bezier(.22,1,.36,1) }
+.tile:hover .tile__arrow{ transform: translate(3px,-3px) }
+
+/* ── 21. footer ────────────────────────────────────────────────────────── */
+.footer{
+  position: relative; z-index: 1; min-height: 90svh;
+  display: flex; flex-direction: column; justify-content: flex-end;
+  padding-block: var(--spacingXXL) var(--spacingL);
+}
+.footer__claim{ margin-block: var(--spacingXXL) calc(var(--spacingXXL) * 1.4) }
+.footer__meta{
+  display: flex; flex-wrap: wrap; gap: var(--spacingL) var(--spacingXXL);
+  justify-content: space-between; align-items: flex-end;
+  border-top: 1px solid var(--hairline); padding-top: var(--spacingM);
+}
+.footer__links{ display: flex; flex-wrap: wrap; gap: var(--spacingM) }
+.footer__legal{ display: flex; flex-direction: column; gap: var(--spacingXS);
+                color: var(--faded) }
+
+/* ── 22. word reveal ───────────────────────────────────────────────────── */
+/* words start at .4 opacity, never 0 — the text stays readable throughout */
+/* word mask: the glyphs ride up inside a clipped box. The padding/margin pair
+   gives descenders somewhere to live — without it the mask shaves the tails
+   off g, y and p. */
+.split .word{
+  display: inline-block; overflow: hidden; vertical-align: top;
+  padding-bottom: .14em; margin-bottom: -.14em;
+}
+.split .word > .inner{
+  display: inline-block;
+  transform: translateY(105%);
+  transition: transform .6s ease;
+}
+.split.is-in .word > .inner{ transform: none }
+
+/* ── 23. film plate — the product video, presented as a plate ──────────── */
+.film{ position: relative; margin-top: var(--spacingXL) }
+.film__plate{
+  position: relative; aspect-ratio: 16/9;
+  border-radius: var(--radiusM); overflow: hidden;
+  background: var(--ink);
+}
+.film__poster{ width: 100%; height: 100%; object-fit: cover;
+               transition: transform 5s cubic-bezier(.22,1,.36,1) }
+.film__plate:hover .film__poster{ transform: scale(1.03) }
+.film__cover{
+  all: unset; box-sizing: border-box; cursor: pointer;
+  position: absolute; inset: 0; width: 100%;
+  display: flex; align-items: flex-end; justify-content: flex-start;
+  padding: var(--spacingL);
+  background: linear-gradient(180deg, rgba(0,0,0,0) 52%, rgba(0,0,0,.45));
+}
+.film__cover:focus-visible{ outline: 2px solid var(--accent); outline-offset: -4px }
+.film iframe{ position: absolute; inset: 0; width: 100%; height: 100%; border: 0 }
+.film__meta{ margin-top: var(--spacingS); color: var(--faded) }
+
+/* ── 24. photo band ────────────────────────────────────────────────────── */
+.band{ display: grid; grid-template-columns: 1fr; gap: var(--spacingXS);
+       margin-top: calc(var(--spacingXXL) * 1.1) }
+@media (min-width: 760px){ .band{ grid-template-columns: 1.6fr 1fr } }
+.band figure{ margin: 0 }
+.band img{ width: 100%; height: 100%; aspect-ratio: 3/2; object-fit: cover;
+           border-radius: var(--radiusM) }
+.band figcaption{ margin-top: var(--spacingS); color: var(--faded) }
+
+/* a thinner weight on a large heading reads as more light/air than any
+   amount of white space around it */
+.hero__title--light{ font-weight: 300 }
+
+/* ── 25. catalogue ─────────────────────────────────────────────────────── */
+.catnav{ display: flex; flex-wrap: wrap; gap: var(--spacingXS);
+         margin-top: var(--spacingXL) }
+.catnav__pill{
+  all: unset; box-sizing: border-box; cursor: pointer;
+  font-family: var(--fontMono); font-size: var(--typeSizeSmall);
+  text-transform: uppercase; line-height: 1;
+  padding: 10px 15px; border-radius: var(--radiusPill);
+  border: 1px solid var(--hairline); color: inherit;
+  transition: background .35s ease, color .35s ease, border-color .35s ease;
+}
+.catnav__pill:hover{ border-color: var(--accent); color: var(--accent) }
+.catnav__pill:focus-visible{ outline: 2px solid var(--accent); outline-offset: 2px }
+.catnav__pill.is-on{ background: var(--ink); color: var(--white);
+                     border-color: transparent }
+
+.filters{ display: flex; flex-wrap: wrap; align-items: center;
+          gap: var(--spacingXS); margin-top: var(--spacingL) }
+.chip{
+  all: unset; box-sizing: border-box; cursor: pointer;
+  font-size: var(--typeSizeSmall); font-weight: var(--weightMid);
+  letter-spacing: var(--letterSpacingNormal); line-height: 1;
+  padding: 8px 12px; border-radius: var(--radiusPill);
+  background: var(--elevated); color: inherit;
+  transition: background .3s ease, color .3s ease;
+}
+.chip:hover{ background: var(--paper-line) }
+.chip:focus-visible{ outline: 2px solid var(--accent); outline-offset: 2px }
+.chip.is-on{ background: var(--accent); color: var(--accent-ink) }
+.filters__count{ color: var(--faded); margin-left: 2px }
+.filters__sort{
+  margin-left: auto;
+  font: inherit; font-size: var(--typeSizeSmall);
+  border: 0; border-bottom: 1px solid var(--hairline);
+  background: transparent; color: inherit; padding: 8px 2px; cursor: pointer;
+}
+
+/* ── catalogue layout ──
+   Filters sit in a ruled panel, never a filled one: a solid block of colour
+   under the chips reads as a slab dropped on the paper, and the reference
+   avoids exactly that by drawing a border and leaving the ground alone. */
+.catalog{
+  display: grid; grid-template-columns: 264px minmax(0, 1fr);
+  gap: var(--spacingXL); margin-top: var(--spacingL);
+  align-items: start;
+}
+.sidefilter{
+  background: transparent;
+  display: grid; gap: var(--spacingM);
+  position: sticky; top: var(--spacingL);
+}
+.sidefilter > * + *{ border-top: 1px solid var(--hairline); padding-top: var(--spacingM) }
+.sidefilter__head{ margin: 0; color: var(--faded) }
+.sidefilter__cats{ list-style: none; margin: 0; padding: 0; display: grid; gap: 2px }
+.sidefilter__cat{
+  all: unset; cursor: pointer; display: block; width: 100%;
+  padding: 6px 0; line-height: 1.3;
+  transition: color .3s ease;
+}
+/* ── the accent gets one job ──
+   It was carrying four meanings at once on this page: "you are here", "this is
+   clickable", "this filter is on" and "in stock". A colour with four meanings
+   has none. Navigation state goes back to weight and tone — which is what
+   DeckMenu.vue already does with the same kind of list — and the accent is left
+   to the stock dot, where it says something about the product.
+   The list also starts quiet: with all seven entries at full ink, the active
+   one could only differ by hue. Faded siblings make it the single black line. */
+.sidefilter__cat{ color: var(--faded) }
+.sidefilter__cat:hover{ color: var(--foreground) }
+.sidefilter__cat.is-on{ color: var(--foreground); font-weight: var(--weightMid) }
+.sidefilter__cats li{ position: relative }
+.sidefilter__cat.is-on::before{
+  content: ""; position: absolute; left: -14px; top: 50%;
+  width: 7px; height: 1px; background: currentColor;
+}
+.sidefilter__cat:focus-visible{ outline: 2px solid var(--accent); outline-offset: 2px }
+.sidefilter__group{ display: grid; gap: var(--spacingS) }
+
+.sidefilter__opts{ list-style: none; margin: 0; padding: 0; display: grid }
+.sidefilter__opt{
+  all: unset; cursor: pointer; box-sizing: border-box; width: 100%;
+  display: flex; align-items: center; gap: 8px;
+  padding-block: 6px; font-size: var(--typeSizeSmall);
+  transition: color .3s ease;
+}
+.sidefilter__opt:focus-visible{ outline: 2px solid var(--accent); outline-offset: 2px }
+.sidefilter__opt:hover{ color: var(--foreground) }
+.sidefilter__tick{
+  width: 10px; height: 10px; flex: none; border-radius: 2px;
+  border: 1px solid var(--hairline);
+  transition: background .25s ease, border-color .25s ease;
+}
+.sidefilter__opt.is-on .sidefilter__tick{ background: var(--accent); border-color: var(--accent) }
+.sidefilter__optlabel{ flex: 1; text-align: left }
+.sidefilter__optcount{ font-family: var(--fontMono); font-size: 11px; color: var(--faded) }
+
+.toolbar{
+  display: flex; align-items: center; gap: var(--spacingM);
+  padding-bottom: var(--spacingS);
+  border-bottom: 1px solid var(--hairline);
+  max-width: 100%;
+}
+.toolbar .filters__sort{ flex: 0 0 auto }
+.toolbar__count{ color: var(--faded) }
+.toolbar .filters__sort{ margin-left: auto }
+
+.loadmore{
+  display: flex; align-items: center; gap: var(--spacingM);
+  justify-content: center; margin-top: var(--spacingL);
+}
+.loadmore .label{ color: var(--faded) }
+
+/* The rail comes back only where a three-up grid survives beside it. At 900px
+   this was a one-pixel cliff: at 900 the sidebar stacked and the grid ran three
+   across the full wrapper, at 901 the 264px rail returned and left the tiles
+   549px — one tile per row. Same page, one pixel apart, two different layouts.
+   1208px is where the main column still clears 3 × 264 + 2 × 32 beside the
+   rail, so the column count only ever steps down, never jumps. */
+@media (max-width: 1207px){
+  .catalog{ grid-template-columns: 1fr }
+  .sidefilter{ position: static }
+  /* seven categories as a vertical list across a 1200px page is a column of
+     air; stacked, the index reads as a row */
+  .sidefilter__cats{ display: flex; flex-wrap: wrap; gap: 4px var(--spacingM) }
+}
+
+/* the tiles: the plate carries the shape, the card does not.
+   Same rule as the row version it replaces — no border, radius or shadow on
+   the card itself — so what the eye reads on the page is a field of product
+   plates and one hairline under each entry, never a grid of boxes. The tile
+   is a column: plate, identity, specs, then the foot pinned to the bottom so
+   prices line up across a row whatever the name wraps to. */
+/* Column count is declared, not derived. `auto-fill` with a 264px floor could
+   never resolve to four here — that needs a main column of 1152px and the
+   wrapper caps at 1320px minus the rail — so it was decorative, and it made the
+   count depend on two variables at once. Three fixed steps instead. */
+.plist{
+  display: grid; margin-top: var(--spacingL);
+  grid-template-columns: 1fr;
+  column-gap: var(--spacingL); row-gap: var(--spacingXL);
+}
+@media (min-width: 560px){ .plist{ grid-template-columns: repeat(2, minmax(0,1fr)) } }
+@media (min-width: 896px){ .plist{ grid-template-columns: repeat(3, minmax(0,1fr)) } }
+.pcard{
+  display: grid; grid-template-rows: auto auto 1fr auto;
+  /* gap 0: the intervals are set per element above, so a uniform grid gap would
+     add to each of them and flatten the grouping back out */
+  gap: 0; align-content: start;
+  min-width: 0; cursor: pointer;
+}
+.pcard:hover .pcard__imgbox img{ transform: scale(1.04) }
+.pcard:hover .pcard__imgbox{ border-color: color-mix(in srgb, var(--foreground) 22%, transparent) }
+.pcard:hover .pcard__name{ text-decoration: underline; text-underline-offset: 4px }
+
+/* 4:3 rather than a fixed height: the tile column is fluid, and a fixed height
+   turns into a different amount of air around the product at every width */
+.pcard__imgbox{
+  aspect-ratio: 4 / 3; border-radius: var(--radiusM);
+  background: var(--paper);
+  border: 1px solid transparent;
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden;
+  transition: border-color .3s ease;
+}
+/* multiply exists for ONE job: eat the white card a JPEG ships on. On a cut-out
+   with real alpha it has nothing to eat and starts working against the product
+   instead — every specular highlight multiplies down into the paper tone and
+   brushed metal turns flat grey. So it applies to the flat assets only, and a
+   cut-out composites normally. */
+.pcard__imgbox img{
+  max-height: 74%; max-width: 78%; object-fit: contain;
+  mix-blend-mode: multiply;
+  transition: transform .6s cubic-bezier(.22,1,.36,1);
+}
+.pcard__imgbox img.is-cut{ mix-blend-mode: normal }
+.pcard__imgbox--empty{ color: var(--faded) }
+
+/* A render that ships on black cannot be multiplied onto paper — multiply takes
+   the black background down over the whole plate and the tile reads as a filled
+   black rectangle, which is what the NVIDIA press renders were doing. Until the
+   background is actually cut, the plate goes dark to meet the asset instead:
+   the render sits on its own ground, deliberately, rather than staining ours. */
+.pcard__imgbox--dark{ background: color-mix(in srgb, var(--foreground) 94%, #000) }
+.pcard__imgbox--dark img{ mix-blend-mode: normal }
+
+/* ── the card's reading order was inverted ──
+   Mono uppercase at 14px carries more visual mass than Manrope 500 at 16px, so
+   "NVIDIA · TO ORDER" was read first and the product name second. In a
+   catalogue the name is the subject and has to win outright. Ranks are now
+   20 / 15 / 13 / 11, and the intervals group rather than stack: the brand line
+   is tight to the name, the data block is set off, the price further still. */
+.pcard__body{ display: grid; gap: var(--spacingXS); min-width: 0; margin-top: 6px }
+.pcard__status{
+  display: flex; align-items: center; gap: 6px; color: var(--faded);
+  font-size: 11px; letter-spacing: .07em; margin-top: 16px;
+}
+.pcard__dot{
+  width: 4px; height: 4px; border-radius: 50%;
+  background: var(--faded);
+}
+.pcard__dot.is-stock{ background: var(--accent) }
+/* Clamped to two lines at a fixed height, because the row is read across, not
+   down: an unclamped name in one tile and two in its neighbour pushed the spec
+   block 22px apart and three adjacent tiles printed three different rhythms.
+   44px = two lines at 20/1.1, so every spec block in a row starts on one line. */
+.pcard__name{
+  font-size: 20px; font-weight: var(--weightMid);
+  letter-spacing: -.03em; line-height: 1.1;
+  min-height: 44px;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+/* 88px, not the 76px this briefly had: "INTERCONNECT" is 12 mono characters at
+   10px plus .06em tracking ≈ 79px, so a narrower column wrapped the label on
+   every DGX and HGX tile — which is the default category, the first screen. */
+.pcard__specs{
+  margin: 14px 0 0; display: grid;
+  grid-template-columns: 88px minmax(0,1fr); row-gap: 5px; column-gap: 10px;
+}
+.pcard__specs dt{
+  font-family: var(--fontMono); font-size: 10px; text-transform: uppercase;
+  letter-spacing: .06em; color: var(--faded);
+}
+.pcard__specs dd{ margin: 0; font-size: 13px; line-height: 1.35 }
+
+/* price and action on one line under the rule. Two stacked full-width buttons
+   were what the row layout had room for; in a tile they are 40% of the card's
+   height and the product stops being the subject. Quoting lives one click in,
+   in the drawer, where it always did. */
+.pcard__foot{
+  display: flex; align-items: center; justify-content: space-between;
+  gap: var(--spacingS); align-self: end; margin-top: 12px;
+}
+/* one rank below the name: a price is a fact about the product, not its title */
+.pcard__price{ font-weight: 400; font-size: 15px;
+               font-variant-numeric: tabular-nums; margin: 0 }
+.pcard__price--none{ color: var(--faded) }
+.pcard__rule{ height: 1px; background: var(--hairline) }
+.btn--s{ height: 30px; padding-inline: 13px }
+.pcard__foot .btn--s{ height: 34px; flex: 0 0 auto }
+
+/* ── 26. drawer + lead form ────────────────────────────────────────────── */
+.drawer-overlay{
+  position: fixed; inset: 0; z-index: 9999; background: rgba(0,0,0,.45);
+  opacity: 0; pointer-events: none; transition: opacity .35s ease;
+}
+.drawer-overlay.is-on{ opacity: 1; pointer-events: auto }
+.drawer{
+  position: fixed; top: 0; right: 0; bottom: 0; z-index: 10000;
+  width: min(470px, 100%);
+  background: var(--white); color: var(--ink);
+  --hairline: rgba(25,24,23,.16); --faded: rgba(25,24,23,.52);
+  --elevated: var(--paper);
+  padding: var(--spacingL); overflow-y: auto;
+  transform: translateX(103%);
+  transition: transform .55s cubic-bezier(.22,1,.36,1);
+}
+.drawer.is-open{ transform: none }
+.drawer__close{ position: sticky; top: 0; float: right; margin-left: var(--spacingM) }
+.drawer__imgbox{ height: 200px; border-radius: var(--radiusS); background: var(--elevated);
+                 display: flex; align-items: center; justify-content: center;
+                 margin-block: var(--spacingL) }
+.drawer__imgbox img{ max-height: 176px; max-width: 82%; object-fit: contain;
+                     mix-blend-mode: multiply }
+.spec-table{ width: 100%; border-collapse: collapse; margin-top: var(--spacingM) }
+.spec-table td{ padding: 9px 0; border-top: 1px solid var(--hairline);
+                font-size: var(--typeSizeSmall); vertical-align: top }
+.spec-table td:first-child{ font-family: var(--fontMono); text-transform: uppercase;
+                            color: var(--faded); padding-right: var(--spacingM);
+                            white-space: nowrap }
+
+.form{ display: grid; gap: var(--spacingM); margin-top: var(--spacingL) }
+.form__row{ display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacingS) }
+.field{ display: grid; gap: 6px }
+.field input, .field textarea, .field select{
+  font: inherit; font-size: var(--typeSizeNormal);
+  background: transparent; color: inherit;
+  border: 1px solid var(--hairline); border-radius: var(--radiusS);
+  padding: 11px 12px;
+  transition: border-color .25s ease;
+}
+.field input:focus, .field textarea:focus, .field select:focus{
+  outline: none; border-color: var(--accent);
+}
+.field textarea{ resize: vertical; min-height: 88px }
+.form__ok{
+  border: 1px solid var(--accent); border-radius: var(--radiusM);
+  padding: var(--spacingL); margin-top: var(--spacingL);
+}
+.form__ok .label{ color: var(--accent); margin-bottom: var(--spacingS) }
+
+/* ── 27. reduced motion ────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

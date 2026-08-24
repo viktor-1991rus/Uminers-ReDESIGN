@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="220" height="104" viewBox="0 0 220 104">
+  <!-- DC container: ribbed box, roof vent, feet -->
+  <rect fill="#000" x="78" y="0" width="64" height="10" rx="3"/>
+  <path fill="#000" fill-rule="evenodd" d="
+    M12 14 h196 a6 6 0 0 1 6 6 v64 a6 6 0 0 1 -6 6 h-196 a6 6 0 0 1 -6 -6 v-64 a6 6 0 0 1 6 -6 z
+    M26 24 h5 v52 h-5 z  M44 24 h5 v52 h-5 z  M62 24 h5 v52 h-5 z
+    M80 24 h5 v52 h-5 z  M98 24 h5 v52 h-5 z  M116 24 h5 v52 h-5 z
+    M134 24 h5 v52 h-5 z M152 24 h5 v52 h-5 z M170 24 h5 v52 h-5 z
+    M188 24 h5 v52 h-5 z" />
+  <rect fill="#000" x="14" y="94" width="26" height="10" rx="2"/>
+  <rect fill="#000" x="180" y="94" width="26" height="10" rx="2"/>
+</svg>

@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="210" height="96" viewBox="0 0 210 96">
+  <!-- GPU card, side: bracket, shroud with two fan cutouts and hubs, pcie edge -->
+  <rect fill="#000" x="0" y="6" width="10" height="72" rx="3"/>
+  <path fill="#000" fill-rule="evenodd" d="
+    M22 4 h176 a10 10 0 0 1 10 10 v54 a10 10 0 0 1 -10 10 h-176 a10 10 0 0 1 -10 -10 v-54 a10 10 0 0 1 10 -10 z
+    M70 14 a27 27 0 1 0 0.001 0 z
+    M152 14 a27 27 0 1 0 0.001 0 z" />
+  <circle fill="#000" cx="70" cy="41" r="9"/>
+  <circle fill="#000" cx="152" cy="41" r="9"/>
+  <rect fill="#000" x="34" y="84" width="118" height="9" rx="2"/>
+</svg>

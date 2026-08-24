@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.DS_Store
+*.log
+public-lite/
+dist-proto/
+uminers-prototype.html
+.env*
+.env*

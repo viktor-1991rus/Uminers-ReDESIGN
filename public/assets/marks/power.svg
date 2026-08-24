@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="140" height="132" viewBox="0 0 140 132">
+  <!-- transformer: two bushings, finned body, bolt cutout -->
+  <rect fill="#000" x="34" y="0" width="10" height="20" rx="3"/>
+  <rect fill="#000" x="96" y="0" width="10" height="20" rx="3"/>
+  <circle fill="#000" cx="39" cy="6" r="9"/>
+  <circle fill="#000" cx="101" cy="6" r="9"/>
+  <path fill="#000" fill-rule="evenodd" d="
+    M18 22 h104 a10 10 0 0 1 10 10 v80 a10 10 0 0 1 -10 10 h-104 a10 10 0 0 1 -10 -10 v-80 a10 10 0 0 1 10 -10 z
+    M76 34 l-26 40 h16 l-10 34 32 -44 h-17 l14 -30 z" />
+  <rect fill="#000" x="0" y="34" width="6" height="86" rx="2"/>
+  <rect fill="#000" x="134" y="34" width="6" height="86" rx="2"/>
+</svg>

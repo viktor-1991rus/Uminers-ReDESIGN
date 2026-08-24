@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="140" viewBox="0 0 120 140">
+  <!-- ASIC miner, front: body, big fan cutout, hub, psu slots, feet -->
+  <path fill="#000" fill-rule="evenodd" d="
+    M18 2 h84 a14 14 0 0 1 14 14 v104 a14 14 0 0 1 -14 14 h-84 a14 14 0 0 1 -14 -14 v-104 a14 14 0 0 1 14 -14 z
+    M60 20 a34 34 0 1 0 0.001 0 z
+    M24 100 h72 v6 h-72 z
+    M24 112 h72 v6 h-72 z" />
+  <circle fill="#000" cx="60" cy="54" r="11"/>
+  <rect fill="#000" x="22" y="134" width="18" height="6" rx="2"/>
+  <rect fill="#000" x="80" y="134" width="18" height="6" rx="2"/>
+</svg>
